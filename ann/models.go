@@ -18,7 +18,7 @@ package ann
 
 // models.go defines frequently used neurual networks.
 
-func FFNN (neurons []Neuron, layers []int, weights [][]float64) Network {
+func FFNN (neurons []Neuron, layers []int) Network {
 	links := transLayerToLink(layers)
 	augment := make([]bool, len(layers))
 	for i,_ := range layers {
@@ -37,8 +37,9 @@ func FFNN (neurons []Neuron, layers []int, weights [][]float64) Network {
 			augment[i] = false
 		}
 	}
-	net := NetIntialize(neurons, layers, links, weights)
-	net.Augment(augment)
+	neurons, layers, links = Augment(neurons, layers, links, augment)
+	net := NetBuild(neurons, layers, links)
+	net.Initialize(nil)
 	return net
 }
 

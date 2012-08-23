@@ -31,18 +31,11 @@ type Neuron struct {
 	Aggregate func([]float64, []float64) float64
 	Activate  [2]func(float64) float64
 	Inputs    []*Neuron
+	Targets   []*Neuron
 	Weights   []float64
 	Output    float64
+	Backprop  float64
 }
-
-type Network struct {
-	Neurons []Neuron
-	Layers  []int
-	Links   [][]int
-}
-
-// type Dataset struct {
-// }
 
 // 	n.GenerateOutput(x) 
 // 	n.GenerateOutput(nil) 
@@ -56,42 +49,39 @@ func (n *Neuron) GenerateOutput (x []float64) {
 	n.Output = n.Activate[0](input)
 }
 
-// The last element of the parameter must be fasle. 
-// net.Augment([]bool{..., false}) 
-func (net *Network) Augment(layer []bool) {
-	q := Neuron{Aggregate: Zero, Activate: Bias()}
-	start := 0
-	for key, status := range layer {
-		end := start + net.Layers[key]
-		if status {
-			net.Neurons = append(net.Neurons[:end], append([]Neuron{q}, net.Neurons[end:]...)...)
-			for i,_ := range net.Links {
-				net.Links[i] = append(net.Links[i][:end], append([]int{0}, net.Links[i][end:]...)...)
-			}
-			auglinkrow := make([]int, len(net.Neurons))
-			net.Links = append(net.Links[:end], append([][]int{auglinkrow}, net.Links[end:]...)...)
-			for i := 1; i <= net.Layers[key+1]; i++ {
-				net.Neurons[end+i].Inputs = append(net.Neurons[end+i].Inputs, &net.Neurons[end])
-				net.Neurons[end+i].Weights = append(net.Neurons[end+i].Weights, 0)
-				net.Links[end][end+i] = 1
-			}
-			net.Layers[key] += 1
-		}
-		start += net.Layers[key]
-	}
+// func (n *Neuron) GenerateBackprop (e []float64) {
+// 	if x == nil {
+// 		for _,point := range n.Inputs {
+// 			x = append(x, point.Output)
+// 		}
+// 	}
+// 	input := n.Aggregate(x, n.Weights)
+// 	n.Output = n.Activate[0](input)
+// }
+
+type Network struct {
+	Neurons []Neuron
+	Layers  []int
+	Links   [][]int
 }
 
 // n1 := ann.Neuron{Input: ann.SU(1), Activation: ann.Linear(1)}
 // n2 := ann.Neuron{Input: ann.SU(3), Activation: ann.Sigmoid(2)}
 // q := Neuron{Aggregate: Zero, Activate: Bias()}
-func NetIntialize(neurons []Neuron, layers []int, links [][]int, weights [][]float64) Network {
+func NetBuild(neurons []Neuron, layers []int, links [][]int) Network {
 	net := Network{Neurons: neurons, Layers: layers, Links: links}
-	if weights == nil {
-		weights = transLayerToWeight(layers)
+	net.Linkify()
+	return net
+}
+
+func (net *Network) Linkify () {
+	for i,_ := range net.Links {
+		net.Neurons[i].Inputs = []*Neuron{}
+		net.Neurons[i].Targets = []*Neuron{}
 	}
-	for i, row := range links {
+	for i, row := range net.Links {
 		for j, col := range row {
-			if col == 1 {
+			if col > 0 {
 				isExist := false
 				for _,out := range net.Neurons[j].Inputs {
 					if &net.Neurons[i] == out {
@@ -100,10 +90,53 @@ func NetIntialize(neurons []Neuron, layers []int, links [][]int, weights [][]flo
 				}
 				if !isExist {
 					net.Neurons[j].Inputs = append(net.Neurons[j].Inputs, &net.Neurons[i])
-					net.Neurons[j].Weights = append(net.Neurons[j].Weights, weights[i][j])
+					net.Neurons[i].Targets = append(net.Neurons[i].Targets, &net.Neurons[j])
 				}
 			}
 		}
 	}
-	return net
 }
+
+
+func (net *Network) Initialize (weights [][]float64) {
+	if weights == nil {
+		weights = transLayerToWeight(net.Layers)
+	}
+	for i,_ := range net.Links {
+		net.Neurons[i].Weights = []float64{}
+	}
+	for i, row := range net.Links {
+		for j, col := range row {
+			if col > 0 {
+				net.Neurons[j].Weights = append(net.Neurons[j].Weights, weights[i][j])
+			}
+		}
+	}
+}
+
+
+// The last element of the parameter must be fasle. 
+func Augment (neurons []Neuron, layers []int, links [][]int, augment []bool) ([]Neuron, []int, [][]int) {
+	q := Neuron{Aggregate: Zero, Activate: Bias()}
+	start := 0
+	for key, status := range augment {
+		end := start + layers[key]
+		if status {
+			neurons = append(neurons[:end], append([]Neuron{q}, neurons[end:]...)...)
+			for i,_ := range links {
+				links[i] = append(links[i][:end], append([]int{0}, links[i][end:]...)...)
+			}
+			auglinkrow := make([]int, len(neurons))
+			links = append(links[:end], append([][]int{auglinkrow}, links[end:]...)...)
+			for i := 1; i <= layers[key+1]; i++ {
+				links[end][end+i] = 1
+			}
+			layers[key] += 1
+		}
+		start += layers[key]
+	}
+	return neurons, layers, links
+}
+
+// type Dataset struct {
+// }

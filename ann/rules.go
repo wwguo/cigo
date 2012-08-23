@@ -35,15 +35,15 @@ import (
 //
 // Special cases:
 //     None
-func Gradient (t,o []float64) (epsilon float64) {
+func gradient (t,o []float64) (e float64) {
 	if len(t) == len(o) {
 		for i := 0; i < len(t); i++ {
-			epsilon += math.Pow(t[i]-o[i],2)
+			e += math.Pow(t[i]-o[i],2)
 		}
 	} else {
 		fmt.Printf("Vector lengths do not fit. t length: %g, o length: %g\n", len(t), len(o))
 	}
-	return epsilon
+	return
 }
 
 
