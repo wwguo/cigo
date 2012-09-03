@@ -30,28 +30,32 @@ package ann
 type Neuron struct {
 	Aggregate func([]float64, []float64) float64
 	Activate  [2]func(float64) float64
-	Inputs    []*Neuron
+	Incomes   []*Neuron
 	Targets   []*Neuron
 	Weights   []float64
+	Input     float64
 	Output    float64
 	Backprop  float64
 }
 
 // 	n.GenerateOutput(x) 
 // 	n.GenerateOutput(nil) 
-func (n *Neuron) GenerateOutput (x []float64) {
+func (n *Neuron) GenerateInput (x []float64) {
 	if x == nil {
-		for _,point := range n.Inputs {
-			x = append(x, point.Output)
+		for _,neu := range n.Incomes {
+			x = append(x, neu.Output)
 		}
 	}
-	input := n.Aggregate(x, n.Weights)
-	n.Output = n.Activate[0](input)
+	n.Input = n.Aggregate(x, n.Weights)
+}
+
+func (n *Neuron) GenerateOutput () {
+	n.Output = n.Activate[0](n.Input)
 }
 
 // func (n *Neuron) GenerateBackprop (e []float64) {
 // 	if x == nil {
-// 		for _,point := range n.Inputs {
+// 		for _,point := range n.Incomes {
 // 			x = append(x, point.Output)
 // 		}
 // 	}
@@ -76,27 +80,26 @@ func NetBuild(neurons []Neuron, layers []int, links [][]int) Network {
 
 func (net *Network) Linkify () {
 	for i,_ := range net.Links {
-		net.Neurons[i].Inputs = []*Neuron{}
+		net.Neurons[i].Incomes = []*Neuron{}
 		net.Neurons[i].Targets = []*Neuron{}
 	}
 	for i, row := range net.Links {
 		for j, col := range row {
 			if col > 0 {
 				isExist := false
-				for _,out := range net.Neurons[j].Inputs {
+				for _,out := range net.Neurons[j].Incomes {
 					if &net.Neurons[i] == out {
 						isExist = true
 					}
 				}
 				if !isExist {
-					net.Neurons[j].Inputs = append(net.Neurons[j].Inputs, &net.Neurons[i])
+					net.Neurons[j].Incomes = append(net.Neurons[j].Incomes, &net.Neurons[i])
 					net.Neurons[i].Targets = append(net.Neurons[i].Targets, &net.Neurons[j])
 				}
 			}
 		}
 	}
 }
-
 
 func (net *Network) Initialize (weights [][]float64) {
 	if weights == nil {
