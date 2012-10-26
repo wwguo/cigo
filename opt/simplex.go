@@ -19,58 +19,120 @@ package opt
 // simplex.go defines the simplex algorithm for linear programming.
 
 import (
-	"math"
-	"github.com/bobhancock/gomatrix/matrix"
+	// "math"
+	// "github.com/bobhancock/gomatrix/matrix"
 	// "code.google.com/p/gomatrix/matrix"
+	"github.com/wwguo/ai.go/matrix"
 	"fmt"
 )
 
 
 // var A, x, b, c matrix.DenseMatrix
+// A := matrix.MakeMatrix(3, 7, []float64{1, 1, 1, 1, 1, 0, 0, 7, 5, 3, 2, 0, 1, 0, 3, 5, 10, 15, 0, 0, 1})
+// b := matrix.MakeMatrix(3, 1, []float64{15, 120, 100})
+// c := matrix.MakeMatrix(1, 7, []float64{4, 5, 9, 11, 0, 0, 0})
 
-func SubMatrix 
+func Simplex (c, A, b *matrix.Matrix) (z float64, x []float64) {
+	m1, n1 := A.Size()  // numRows, numCols
+	m2, _ := b.Size()
+	_, n2 := c.Size()
 
-
-
-func Simplex (A, b, c matrix.DenseMatrix) (x matrix.DenseMatrix) {
-	m1, n1 := A.GetSize()  // numRows, numCols
-	m2, _ := b.GetSize()
-	_, n2 := c.GetSize()
+	var m, n int
 
 	if m1 == m2 && n1 == n2 {
-		if m < n {
-			m := m1
-			n := n1
+		if m1 < n1 {
+			m = m1
+			n = n1
 		} else {
 			fmt.Printf("Restricts are more than variables. The Simplex isn't suitable for the problem.")
-			break
+			return
 		}			
 	} else {
 		fmt.Printf("Row numbers or column numbers doesn't fit.")
-		break
+		return
 	}
 
-	x := matrix.Zeros(n, 1)
+	index := make([]int, n, n)
+	for i := 1; i <=n; i++ {
+		index[i-1] = i
+	}
+	iB := index[n-m:n]
+	iN := index[0:n-m]
 
-	xB := x.GetMatrix(1, 1, m, 1)
-	cB := c.GetMatrix(1, 1, 1, m)
-	B  := A.GetMatrix(1, 1, m, m)
-	xN := x.GetMatrix(m+1, 1, n, 1)
-	cN := c.GetMatrix(1, m+1, 1, n)
-	N  := A.GetMatrix(m+1, m+1, n, n)
+	var X, Z, cB, cN, B, N *matrix.Matrix
+	var k, l int
+	var σmax, βmin float64
 
-	// Todo: 查替换矩阵的行或列（是否要用指针类型？） 
-	//       GetRowVector(i int)
-	//       SetRowVector(src, row int)
-	//       GetColVector(j int)
-	//       SetMatrix(1, j, B)
-	//       Get(i,j)
-	//       Set(i,j)
+	k = -1
 
-	Binv, _ := B.Inverse()
-	xB, _ = Binv.Times(b)
-	z, _ := cB.Times(xB)
+	for k != 0 {
+		X = matrix.MakeZero(n, 1)
 
-	
+		cB = c.GetCols(iB)
+		cN = c.GetCols(iN)
+		B  = A.GetCols(iB)
+		N  = A.GetCols(iN)
+		// fmt.Printf("\ncB: %v\n B: %v\n", cB, B)
+		// fmt.Printf("\ncN: %v\n N: %v\n", cN, N)
 
+		Binv, _ := B.Inverse()
+		// fmt.Printf("\nBinv: %v\n", Binv)
+
+		T1, _ := matrix.Product(cB, Binv, N)
+		// fmt.Printf("\nT: %v\n", T1)
+		Sigma, _ := matrix.Subtract(cN, T1)
+		σ := Sigma.Vector()
+		// fmt.Printf("\nσ: %v\n", Sigma) 
+
+		k = 0
+		σmax = 0
+		for i, s := range σ {
+			if s > σmax {
+				σmax = s
+				k = i + 1
+			}
+		}
+
+		if k == 0 {
+			d, _ := matrix.Multiply(Binv, b)
+			X.SetRows(iB, d)
+			Z, _ = matrix.Product(cB, Binv, b)
+			x = X.Vector()
+			z = Z.Get(1,1)
+			continue
+		}
+
+		// fmt.Printf("\nk: %v\nσmax: %v\n", k, σmax) 
+
+		ak := N.GetCol(k)
+		a, _ := matrix.Multiply(Binv, ak)
+		d, _ := matrix.Multiply(Binv, b)
+		// fmt.Printf("\na: %v\nd: %v\nx: %v\n", a, d) 
+
+		avec := a.Vector()
+		dvec := d.Vector()
+		for i, ai := range avec {
+			if ai > 0 {
+				βmin = dvec[i]/ai
+				l = i + 1
+				break
+			}
+		}
+		// fmt.Printf("\nl: %v\nβmin: %v\n", l, βmin)
+
+		for i := 0; i < m; i++ {
+			β := dvec[i]/avec[i]
+			if avec[i] > 0 && β < βmin {
+				βmin = β
+				l = i + 1
+			}
+		}
+		// fmt.Printf("\nl: %v\nβmin: %v\n", l, βmin)
+
+		iB[l-1], iN[k-1] = iN[k-1], iB[l-1]
+		// fmt.Printf("\niB: %v\niN: %v\n", iB, iN)
+	}
+
+	return
 }
+
