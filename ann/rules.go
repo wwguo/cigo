@@ -52,7 +52,7 @@ func gradient (t,o []float64) (e float64) {
 // Parameters:
 //     v: weight vector
 //     eta: speed factor
-//     delta: derivative function of the 
+//     delta: derivative function of the
 // Outputs:
 //     Single number
 //
@@ -89,6 +89,7 @@ func LMS (v,t,o,z,eta float64) float64 {
 	return newv
 }
 
+
 // Generalized Delta learning rule
 func GeneralDelta (v,t,o,z,eta float64) float64 {
     //  ∂E
@@ -100,3 +101,16 @@ func GeneralDelta (v,t,o,z,eta float64) float64 {
 	return newv
 }
 
+
+// 	n.GenerateBackprop(e) 
+// 	n.GenerateBackprop(nil) 
+func GenerateBackprop (e,w []float64, n Neuron) (b float64) {
+	if e == nil {
+		for _,neu := range n.Targets {
+			e = append(e, b)
+		}
+	}
+	gradient := n.Aggregate(e, w)
+	b = gradient * n.Activate[1](n.Input)
+	return
+}

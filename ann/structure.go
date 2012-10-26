@@ -31,42 +31,34 @@ type Neuron struct {
 	Aggregate func([]float64, []float64) float64
 	Activate  [2]func(float64) float64
 	Incomes   []*Neuron
-	Targets   []*Neuron
-	Weights   []float64
 	Input     float64
+	Targets   []*Neuron
 	Output    float64
-	Backprop  float64
 }
 
-// 	n.GenerateOutput(x) 
-// 	n.GenerateOutput(nil) 
-func (n *Neuron) GenerateInput (x []float64) {
+// 	n.GenerateInput(x) 
+// 	n.GenerateInput(nil) 
+func (n *Neuron) GenerateInput (x,w []float64) {
 	if x == nil {
 		for _,neu := range n.Incomes {
 			x = append(x, neu.Output)
 		}
 	}
-	n.Input = n.Aggregate(x, n.Weights)
+	n.Input = n.Aggregate(x, w)
 }
 
+// 	n.GenerateOutput() 
 func (n *Neuron) GenerateOutput () {
 	n.Output = n.Activate[0](n.Input)
 }
 
-// func (n *Neuron) GenerateBackprop (e []float64) {
-// 	if x == nil {
-// 		for _,point := range n.Incomes {
-// 			x = append(x, point.Output)
-// 		}
-// 	}
-// 	input := n.Aggregate(x, n.Weights)
-// 	n.Output = n.Activate[0](input)
-// }
+
 
 type Network struct {
 	Neurons []Neuron
 	Layers  []int
 	Links   [][]int
+	Weights [][]float64
 }
 
 // n1 := ann.Neuron{Input: ann.SU(1), Activation: ann.Linear(1)}
@@ -105,16 +97,7 @@ func (net *Network) Initialize (weights [][]float64) {
 	if weights == nil {
 		weights = transLayerToWeight(net.Layers)
 	}
-	for i,_ := range net.Links {
-		net.Neurons[i].Weights = []float64{}
-	}
-	for i, row := range net.Links {
-		for j, col := range row {
-			if col > 0 {
-				net.Neurons[j].Weights = append(net.Neurons[j].Weights, weights[i][j])
-			}
-		}
-	}
+	net.Weights = weights
 }
 
 

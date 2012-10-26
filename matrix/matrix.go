@@ -189,6 +189,7 @@ func (M *Matrix) SetRows(r []int, A *Matrix) (err error) {
 }
 
 
+// Get submatirx by sequences of rows and cols. 
 func (M *Matrix) GetSub(r, c []int) *Matrix {
 	A := M.GetRows(r)
 	B := A.GetCols(c)
@@ -197,7 +198,7 @@ func (M *Matrix) GetSub(r, c []int) *Matrix {
 	return B
 }
 
-// i and j set the upper left corner; rows and cols set row and column numbers.
+// Get submatrix by the upper left corner (i,j) and bottom right corner (m,n).
 func (M *Matrix) GetMatrix(i, j, m, n int) *Matrix {
 	var r, c []int
 	for k := i; k <= m; k++ {
@@ -215,6 +216,7 @@ func (M *Matrix) GetMatrix(i, j, m, n int) *Matrix {
 
 // Matrix computation functions
 
+// Exchange tow rows.
 func (M *Matrix) SwapRows(r1, r2 int) {
 	r10 := (r1-1)*M.cols
 	r20 := (r2-1)*M.cols
@@ -223,13 +225,14 @@ func (M *Matrix) SwapRows(r1, r2 int) {
 	}
 }
 
+// Exchange two cols.
 func (M *Matrix) SwapCols(c1, c2 int) {
 	for i := 0; i < M.rows; i++ {
 		M.elements[i*M.cols+c1], M.elements[i*M.cols+c2] = M.elements[i*M.cols+c2], M.elements[i*M.cols+c1]
 	}
 }
 
-// Combine get a new matrix [A B].
+// Combine two matrix and get a new matrix [A B].
 func Combine(A, B *Matrix) (M *Matrix, err error) {
 	M = new(Matrix)
 	if A.rows != B.rows {
@@ -247,6 +250,7 @@ func Combine(A, B *Matrix) (M *Matrix, err error) {
 	return
 }
 
+// Matrix inversion.
 func (M *Matrix) Inverse() (*Matrix, error) {
 	if M.rows != M.cols {
 		return nil, ErrorDimensionMismatch
@@ -295,6 +299,7 @@ func (M *Matrix) Inverse() (*Matrix, error) {
 	return Minv, nil
 }
 
+// Matrix addition.
 func Add(A, B *Matrix) (M *Matrix, err error) {
 	if A.rows != B.rows || A.cols != B.cols {
 		return nil, ErrorDimensionMismatch
@@ -308,6 +313,7 @@ func Add(A, B *Matrix) (M *Matrix, err error) {
 	return M, nil
 }
 
+// Matrix subtract (actually addition).
 func Subtract(A, B *Matrix) (M *Matrix, err error) {
 	if A.rows != B.rows || A.cols != B.cols {
 		return nil, ErrorDimensionMismatch
@@ -321,6 +327,7 @@ func Subtract(A, B *Matrix) (M *Matrix, err error) {
 	return M, nil
 }
 
+// Matrix multiplication, element by element.
 func Times(A, B *Matrix) (M *Matrix, err error) {
 	if A.rows != B.rows || A.cols != B.cols {
 		return nil, ErrorDimensionMismatch
@@ -334,6 +341,7 @@ func Times(A, B *Matrix) (M *Matrix, err error) {
 	return M, nil
 }
 
+// Matrix element devidient.
 func Divide(A, B *Matrix) (M *Matrix, err error) {
 	if A.rows != B.rows || A.cols != B.cols {
 		return nil, ErrorDimensionMismatch
@@ -347,6 +355,7 @@ func Divide(A, B *Matrix) (M *Matrix, err error) {
 	return M, nil
 }
 
+// Matrix multiplication, the common one.
 func Multiply(A, B *Matrix) (M *Matrix, err error) {
 	if A.cols != B.rows {
 		return nil, ErrorDimensionMismatch
@@ -364,6 +373,7 @@ func Multiply(A, B *Matrix) (M *Matrix, err error) {
 	return M, nil
 }
 
+// Suger function.
 func Product(Mlist ...*Matrix) (M *Matrix, err error) {
 	if len(Mlist) < 2 {
 		err = ErrorNotEnoughMatrix

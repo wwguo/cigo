@@ -43,6 +43,7 @@ func FFNN (neurons []Neuron, layers []int) Network {
 	return net
 }
 
+
 // func PUNN () {
 // }
 

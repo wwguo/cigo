@@ -20,20 +20,18 @@ package opt
 
 import (
 	// "math"
-	// "github.com/bobhancock/gomatrix/matrix"
-	// "code.google.com/p/gomatrix/matrix"
-	"github.com/wwguo/ai.go/matrix"
 	"fmt"
+	"github.com/wwguo/ai.go/matrix"
 )
 
-
-// var A, x, b, c matrix.DenseMatrix
+// var A, b, c *matrix.Matrix
 // A := matrix.MakeMatrix(3, 7, []float64{1, 1, 1, 1, 1, 0, 0, 7, 5, 3, 2, 0, 1, 0, 3, 5, 10, 15, 0, 0, 1})
 // b := matrix.MakeMatrix(3, 1, []float64{15, 120, 100})
 // c := matrix.MakeMatrix(1, 7, []float64{4, 5, 9, 11, 0, 0, 0})
 
-func Simplex (c, A, b *matrix.Matrix) (z float64, x []float64) {
-	m1, n1 := A.Size()  // numRows, numCols
+func Simplex(c, A, b *matrix.Matrix) (z float64, x []float64) {
+	// Check matrix rows and columns. 
+	m1, n1 := A.Size() // numRows, numCols
 	m2, _ := b.Size()
 	_, n2 := c.Size()
 
@@ -52,38 +50,38 @@ func Simplex (c, A, b *matrix.Matrix) (z float64, x []float64) {
 		return
 	}
 
+	// Prepare index list for creating matrices in each iteration.
 	index := make([]int, n, n)
-	for i := 1; i <=n; i++ {
+	for i := 1; i <= n; i++ {
 		index[i-1] = i
 	}
-	iB := index[n-m:n]
-	iN := index[0:n-m]
+	iB := index[n-m : n]
+	iN := index[0 : n-m]
 
+	// Define variables specified in Simplex algorithm.
 	var X, Z, cB, cN, B, N *matrix.Matrix
 	var k, l int
 	var σmax, βmin float64
 
+	// For starting the iteration.
 	k = -1
 
 	for k != 0 {
+		// Initialize matrices.
 		X = matrix.MakeZero(n, 1)
 
 		cB = c.GetCols(iB)
 		cN = c.GetCols(iN)
 		B  = A.GetCols(iB)
 		N  = A.GetCols(iN)
-		// fmt.Printf("\ncB: %v\n B: %v\n", cB, B)
-		// fmt.Printf("\ncN: %v\n N: %v\n", cN, N)
 
+		// Compute intermidiate matrices for algorithm.
 		Binv, _ := B.Inverse()
-		// fmt.Printf("\nBinv: %v\n", Binv)
-
 		T1, _ := matrix.Product(cB, Binv, N)
-		// fmt.Printf("\nT: %v\n", T1)
 		Sigma, _ := matrix.Subtract(cN, T1)
 		σ := Sigma.Vector()
-		// fmt.Printf("\nσ: %v\n", Sigma) 
 
+		// Find the biggest σ for judgement. 
 		k = 0
 		σmax = 0
 		for i, s := range σ {
@@ -94,45 +92,43 @@ func Simplex (c, A, b *matrix.Matrix) (z float64, x []float64) {
 		}
 
 		if k == 0 {
+			// If there is no σ positive, the iteration stop and optimization reaches.
 			d, _ := matrix.Multiply(Binv, b)
 			X.SetRows(iB, d)
 			Z, _ = matrix.Product(cB, Binv, b)
 			x = X.Vector()
-			z = Z.Get(1,1)
+			z = Z.Get(1, 1)
 			continue
-		}
+		} else {
+			// If there is at least one σ positive, looking for varialbe to exchange.
+			ak := N.GetCol(k)
+			a, _ := matrix.Multiply(Binv, ak)
+			d, _ := matrix.Multiply(Binv, b)
 
-		// fmt.Printf("\nk: %v\nσmax: %v\n", k, σmax) 
-
-		ak := N.GetCol(k)
-		a, _ := matrix.Multiply(Binv, ak)
-		d, _ := matrix.Multiply(Binv, b)
-		// fmt.Printf("\na: %v\nd: %v\nx: %v\n", a, d) 
-
-		avec := a.Vector()
-		dvec := d.Vector()
-		for i, ai := range avec {
-			if ai > 0 {
-				βmin = dvec[i]/ai
-				l = i + 1
-				break
+			// This is for find a positive β for later comparison.
+			avec := a.Vector()
+			dvec := d.Vector()
+			for i, ai := range avec {
+				if ai > 0 {
+					βmin = dvec[i] / ai
+					l = i + 1
+					break
+				}
 			}
-		}
-		// fmt.Printf("\nl: %v\nβmin: %v\n", l, βmin)
 
-		for i := 0; i < m; i++ {
-			β := dvec[i]/avec[i]
-			if avec[i] > 0 && β < βmin {
-				βmin = β
-				l = i + 1
+			// Find the smallest β which corresponding to the variable to exchange.
+			for i := 0; i < m; i++ {
+				β := dvec[i] / avec[i]
+				if avec[i] > 0 && β < βmin {
+					βmin = β
+					l = i + 1
+				}
 			}
-		}
-		// fmt.Printf("\nl: %v\nβmin: %v\n", l, βmin)
 
-		iB[l-1], iN[k-1] = iN[k-1], iB[l-1]
-		// fmt.Printf("\niB: %v\niN: %v\n", iB, iN)
+			// Exchange varialbes, controlled by indices.
+			iB[l-1], iN[k-1] = iN[k-1], iB[l-1]
+		}
 	}
 
 	return
 }
-
