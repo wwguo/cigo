@@ -14,7 +14,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 // Package matrix provides interfaces and algorithms for matrix manipulation.
-package matrix
+package base
 
 import (
 	// "math"
@@ -41,11 +41,6 @@ func (M *Matrix) Row() (r int) {
 
 func (M *Matrix) Col() (c int) {
 	c = M.cols
-	return
-}
-
-func (M *Matrix) Vector() (e []float64) {
-	e = M.elements
 	return
 }
 
