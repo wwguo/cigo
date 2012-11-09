@@ -23,7 +23,7 @@ import (
 
 
 type Matrix struct {
-	elements  []float64
+	Vector
 	rows int
 	cols int
 }
@@ -46,10 +46,10 @@ func (M *Matrix) Col() (c int) {
 
 // Functions for defining matrices.
 
-func MakeMatrix (r int, c int, E []float64) *Matrix {
+func MakeMatrix (r int, c int, E Vector) *Matrix {
 	M := new(Matrix)
 	if len(E) == r*c {
-		M.elements = E
+		M.Vector = E
 		M.rows = r
 		M.cols = c
 	} else {
@@ -60,7 +60,7 @@ func MakeMatrix (r int, c int, E []float64) *Matrix {
 
 func MakeZero(r, c int) *Matrix {
 	M := new(Matrix)
-	M.elements = make([]float64, r*c)
+	M.Vector = make(Vector, r*c)
 	M.rows = r
 	M.cols = c
 	return M
@@ -68,9 +68,9 @@ func MakeZero(r, c int) *Matrix {
 
 func MakeUnit(r, c int) *Matrix {
 	M := new(Matrix)
-	M.elements = make([]float64, r*c)
-	for i, _ := range M.elements {
-		M.elements[i] = 1.0
+	M.Vector = make(Vector, r*c)
+	for i, _ := range M.Vector {
+		M.Vector[i] = 1.0
 	}
 	M.rows = r
 	M.cols = c
@@ -79,9 +79,9 @@ func MakeUnit(r, c int) *Matrix {
 
 func MakeIdentity(s int) *Matrix {
 	M := new(Matrix)
-	M.elements = make([]float64, s*s)
+	M.Vector = make(Vector, s*s)
 	for i := 0; i < s; i++ {
-		M.elements[s*i+i] = 1.0
+		M.Vector[s*i+i] = 1.0
 	}
 	M.rows = s
 	M.cols = s
@@ -92,12 +92,12 @@ func MakeIdentity(s int) *Matrix {
 
 // Operation on single element at i,j. 
 func (M *Matrix) Get(i,j int) (e float64) {
-	e = M.elements[(i-1)*M.cols+(j-1)]
+	e = M.Vector[(i-1)*M.cols+(j-1)]
 	return e
 }
 
 func (M *Matrix) Set(i,j int, e float64) () {
-	M.elements[(i-1)*M.cols+(j-1)] = e
+	M.Vector[(i-1)*M.cols+(j-1)] = e
 	return
 }
 
@@ -105,7 +105,7 @@ func (M *Matrix) Set(i,j int, e float64) () {
 func (M *Matrix) GetCol(c int) *Matrix {
 	B := new(Matrix)
 	for i := 1; i <= M.rows; i++ {
-		B.elements = append(B.elements, M.Get(i,c))
+		B.Vector = append(B.Vector, M.Get(i,c))
 	}
 	B.rows = M.rows
 	B.cols = 1
@@ -126,7 +126,7 @@ func (M *Matrix) SetCol(c int, A *Matrix) (err error) {
 // Operation on single row at r. 
 func (M *Matrix) GetRow(r int) *Matrix {
 	B := new(Matrix)
-	B.elements = M.elements[(r-1)*M.cols : r*M.cols]
+	B.Vector = M.Vector[(r-1)*M.cols : r*M.cols]
 	B.rows = 1
 	B.cols = M.cols
 	return B
@@ -149,7 +149,7 @@ func (M *Matrix) GetCols(c []int) *Matrix {
 	for i := 1; i <= M.rows; i++ {
 		for _, j := range c {
 			e := M.Get(i,j)
-			B.elements = append(B.elements, e)
+			B.Vector = append(B.Vector, e)
 		}
 	}
 	B.rows = M.rows
@@ -169,7 +169,7 @@ func (M *Matrix) GetRows(r []int) *Matrix {
 	B := new(Matrix)
 	for _, i := range r {
 		row := M.GetRow(i)
-		B.elements = append(B.elements, row.elements...)
+		B.Vector = append(B.Vector, row.Vector...)
 	}
 	B.rows = len(r)
 	B.cols = M.cols
@@ -216,14 +216,14 @@ func (M *Matrix) SwapRows(r1, r2 int) {
 	r10 := (r1-1)*M.cols
 	r20 := (r2-1)*M.cols
 	for j := 0; j < M.cols; j++ {
-		M.elements[r10+j], M.elements[r20+j] = M.elements[r20+j], M.elements[r10+j]
+		M.Vector[r10+j], M.Vector[r20+j] = M.Vector[r20+j], M.Vector[r10+j]
 	}
 }
 
 // Exchange two cols.
 func (M *Matrix) SwapCols(c1, c2 int) {
 	for i := 0; i < M.rows; i++ {
-		M.elements[i*M.cols+c1], M.elements[i*M.cols+c2] = M.elements[i*M.cols+c2], M.elements[i*M.cols+c1]
+		M.Vector[i*M.cols+c1], M.Vector[i*M.cols+c2] = M.Vector[i*M.cols+c2], M.Vector[i*M.cols+c1]
 	}
 }
 
@@ -237,8 +237,8 @@ func Combine(A, B *Matrix) (M *Matrix, err error) {
 	for i := 1; i<=A.rows; i++ {
 		Avec := A.GetRow(i)
 		Bvec := B.GetRow(i)
-		M.elements = append(M.elements, Avec.elements...)
-		M.elements = append(M.elements, Bvec.elements...)
+		M.Vector = append(M.Vector, Avec.Vector...)
+		M.Vector = append(M.Vector, Bvec.Vector...)
 	}
 	M.rows = A.rows
 	M.cols = A.cols + B.cols
@@ -274,7 +274,7 @@ func (M *Matrix) Inverse() (*Matrix, error) {
 		}
 		// Transforing the diagnal value of the row to 1. 
 		for t := 0; t < 2*s; t++ {
-			A.elements[2*s*(i-1)+t] *= 1.0/rmax
+			A.Vector[2*s*(i-1)+t] *= 1.0/rmax
 		}
 		// Transforing other values in the column to 0.
 		for l := 1; l <= s; l++ {
@@ -282,10 +282,10 @@ func (M *Matrix) Inverse() (*Matrix, error) {
 				continue
 			}
 			// Find the value to be subtracted out the line. 
-			cval := A.elements[2*s*(l-1)+(i-1)]
+			cval := A.Vector[2*s*(l-1)+(i-1)]
 			// Each value of the line subtracts the corresponding value in i line multipling cval.
 			for c := 0; c < 2*s; c++ {
-				A.elements[2*s*(l-1)+c] -= A.elements[2*s*(i-1)+c]*cval
+				A.Vector[2*s*(l-1)+c] -= A.Vector[2*s*(i-1)+c]*cval
 			}
 		}
 	}
@@ -368,7 +368,9 @@ func Multiply(A, B *Matrix) (M *Matrix, err error) {
 	return M, nil
 }
 
-// Suger function.
+// Suger functions.
+
+// Production of multiple matrices.
 func Product(Mlist ...*Matrix) (M *Matrix, err error) {
 	if len(Mlist) < 2 {
 		err = ErrorNotEnoughMatrix
@@ -382,3 +384,17 @@ func Product(Mlist ...*Matrix) (M *Matrix, err error) {
 	return
 }
 
+// Tequality of the two matrices
+func EqualMatrix (A, B *Matrix) bool {
+	if A.rows != B.rows || A.cols != B.cols {
+		return false
+	}
+	for i := 1; i <= A.rows; i++ {
+		for j := 1; j <= A.cols; j++ {
+			if A.Get(i, j) != B.Get(i, j) {
+				return false
+			}
+		}
+	}
+	return true
+}

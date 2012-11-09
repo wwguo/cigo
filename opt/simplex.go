@@ -19,24 +19,24 @@ package opt
 // simplex.go defines the simplex algorithm for linear programming.
 
 import (
-	"math"
+	// "math"
 	// "fmt"
-	"github.com/wwguo/ai.go/matrix"
+	"github.com/wwguo/ai.go/base"
 )
 
 
 // type LinearModel struct {
-// 	A *matrix.Matrix
-// 	c *matrix.Matrix
-// 	b *matrix.Matrix
+// 	A *base.Matrix
+// 	c *base.Matrix
+// 	b *base.Matrix
 // 	z float64
 // 	x []float64
 // } 
 
-// // var A, b, c *matrix.Matrix
-// // A := matrix.MakeMatrix(3, 7, []float64{1, 1, 1, 1, 1, 0, 0, 7, 5, 3, 2, 0, 1, 0, 3, 5, 10, 15, 0, 0, 1})
-// // b := matrix.MakeMatrix(3, 1, []float64{15, 120, 100})
-// // c := matrix.MakeMatrix(1, 7, []float64{4, 5, 9, 11, 0, 0, 0})
+// // var A, b, c *base.Matrix
+// // A := base.MakeMatrix(3, 7, []float64{1, 1, 1, 1, 1, 0, 0, 7, 5, 3, 2, 0, 1, 0, 3, 5, 10, 15, 0, 0, 1})
+// // b := base.MakeMatrix(3, 1, []float64{15, 120, 100})
+// // c := base.MakeMatrix(1, 7, []float64{4, 5, 9, 11, 0, 0, 0})
 
 // func (model *LinearModel) Simplex() {
 // 	// Check matrix rows and columns. 
@@ -68,7 +68,7 @@ import (
 // 	iN := index[0 : n-m]
 
 // 	// Define variables specified in Simplex algorithm.
-// 	var X, Z, cB, cN, B, N *matrix.Matrix
+// 	var X, Z, cB, cN, B, N *base.Matrix
 // 	var k, l int
 // 	var σmax, βmin float64
 
@@ -77,7 +77,7 @@ import (
 
 // 	for k != 0 {
 // 		// Initialize matrices.
-// 		X = matrix.MakeZero(n, 1)
+// 		X = base.MakeZero(n, 1)
 
 // 		cB = c.GetCols(iB)
 // 		cN = c.GetCols(iN)
@@ -86,9 +86,9 @@ import (
 
 // 		// Compute intermidiate matrices for algorithm.
 // 		Binv, _ := B.Inverse()
-// 		T1, _ := matrix.Product(cB, Binv, N)
-// 		Sigma, _ := matrix.Subtract(cN, T1)
-// 		σ := Sigma.Vector()
+// 		T1, _ := base.Product(cB, Binv, N)
+// 		Sigma, _ := base.Subtract(cN, T1)
+// 		σ := Sigma.Vector
 
 // 		// Find the biggest σ for judgement. 
 // 		k = 0
@@ -102,21 +102,21 @@ import (
 
 // 		if k == 0 {
 // 			// If there is no σ positive, the iteration stop and optimization reaches.
-// 			d, _ := matrix.Multiply(Binv, b)
+// 			d, _ := base.Multiply(Binv, b)
 // 			X.SetRows(iB, d)
-// 			Z, _ = matrix.Product(cB, Binv, b)
-// 			model.x = X.Vector()
+// 			Z, _ = base.Product(cB, Binv, b)
+// 			model.x = X.Vector
 // 			model.z = Z.Get(1, 1)
 // 			continue
 // 		} else {
 // 			// If there is at least one σ positive, looking for varialbe to exchange.
 // 			ak := N.GetCol(k)
-// 			a, _ := matrix.Multiply(Binv, ak)
-// 			d, _ := matrix.Multiply(Binv, b)
+// 			a, _ := base.Multiply(Binv, ak)
+// 			d, _ := base.Multiply(Binv, b)
 
 // 			// This is for find a positive β for later comparison.
-// 			avec := a.Vector()
-// 			dvec := d.Vector()
+// 			avec := a.Vector
+// 			dvec := d.Vector
 // 			for i, ai := range avec {
 // 				if ai > 0 {
 // 					βmin = dvec[i] / ai
@@ -143,7 +143,7 @@ import (
 // }
 
 
-func indexCheck (c, A, b *matrix.Matrix) (m, n int) {
+func indexCheck (c, A, b *base.Matrix) (m, n int) {
 	// Check matrix rows and columns. 
 	m1, n1 := A.Size() // numRows, numCols
 	m2, _ := b.Size()
@@ -163,15 +163,15 @@ func indexCheck (c, A, b *matrix.Matrix) (m, n int) {
 	return m, n
 }
 
-func Simplex(c, A, b *matrix.Matrix) (z float64, x []float64, err error, iB, iN []int) {
+func Simplex(c, A, b *base.Matrix) (z float64, x base.Vector, iB []int, iN []int, err error) {
 	// Check matrix rows and columns. 
 	m, n := indexCheck(c, A, b)
 
 	switch n {
     case -1:
-		return 0, nil, ErrorIllegalIndex
+		return 0, nil, nil, nil, ErrorIllegalIndex
     case -2:
-		return 0, nil, ErrorDimensionMismatch
+		return 0, nil, nil, nil, ErrorDimensionMismatch
 	}
 
 	// Prepare index list for creating matrices in each iteration.
@@ -183,7 +183,7 @@ func Simplex(c, A, b *matrix.Matrix) (z float64, x []float64, err error, iB, iN 
 	iN = index[0 : n-m]
 
 	// Define variables specified in Simplex algorithm.
-	var X, Z, cB, cN, B, N *matrix.Matrix
+	var X, Z, cB, cN, B, N *base.Matrix
 	var k, l int
 	var σmax, βmin float64
 
@@ -192,7 +192,7 @@ func Simplex(c, A, b *matrix.Matrix) (z float64, x []float64, err error, iB, iN 
 
 	for k != 0 {
 		// Initialize matrices.
-		X = matrix.MakeZero(n, 1)
+		X = base.MakeZero(n, 1)
 
 		cB = c.GetCols(iB)
 		cN = c.GetCols(iN)
@@ -201,9 +201,9 @@ func Simplex(c, A, b *matrix.Matrix) (z float64, x []float64, err error, iB, iN 
 
 		// Compute intermidiate matrices for algorithm.
 		Binv, _ := B.Inverse()
-		T1, _ := matrix.Product(cB, Binv, N)
-		Sigma, _ := matrix.Subtract(cN, T1)
-		σ := Sigma.Vector()
+		T1, _ := base.Product(cB, Binv, N)
+		Sigma, _ := base.Subtract(cN, T1)
+		σ := Sigma.Vector
 
 		// Find the biggest σ for judgement. 
 		k = 0
@@ -217,21 +217,21 @@ func Simplex(c, A, b *matrix.Matrix) (z float64, x []float64, err error, iB, iN 
 
 		if k == 0 {
 			// If there is no σ positive, the iteration stop and optimization reaches.
-			d, _ := matrix.Multiply(Binv, b)
+			d, _ := base.Multiply(Binv, b)
 			X.SetRows(iB, d)
-			Z, _ = matrix.Product(cB, Binv, b)
-			x = X.Vector()
+			Z, _ = base.Product(cB, Binv, b)
+			x = X.Vector
 			z = Z.Get(1, 1)
 			continue
 		} else {
 			// If there is at least one σ positive, looking for varialbe to exchange.
 			ak := N.GetCol(k)
-			a, _ := matrix.Multiply(Binv, ak)
-			d, _ := matrix.Multiply(Binv, b)
+			a, _ := base.Multiply(Binv, ak)
+			d, _ := base.Multiply(Binv, b)
 
 			// This is for find a positive β for later comparison.
-			avec := a.Vector()
-			dvec := d.Vector()
+			avec := a.Vector
+			dvec := d.Vector
 			for i, ai := range avec {
 				if ai > 0 {
 					βmin = dvec[i] / ai
@@ -254,42 +254,39 @@ func Simplex(c, A, b *matrix.Matrix) (z float64, x []float64, err error, iB, iN 
 		}
 	}
 
-	return z, x, nil, iB, iN
+	return z, x, iB, iN, nil
 }
 
-func Sensitivity(iB []int, iN []int, c, A, b *matrix.Matrix) (err error) {
-	// Check matrix rows and columns. 
-	m, n := indexCheck(c, A, b)
+// func Sensitivity(iB []int, iN []int, c, A, b *base.Matrix) (err error) {
+// 	// Check matrix rows and columns. 
+// 	m, n := indexCheck(c, A, b)
 
-	switch n {
-    case -1:
-		return 0, nil, ErrorIllegalIndex
-    case -2 && n != len(x):
-		return 0, nil, ErrorDimensionMismatch
-	}
+// 	switch n {
+//     case -1:
+// 		return 0, nil, ErrorIllegalIndex
+//     case -2 && n != len(x):
+// 		return 0, nil, ErrorDimensionMismatch
+// 	}
 
-	// ===FixMe: The following part is repeated. 
+// 	// ===FixMe: The following part is repeated. 
 
-	var cB, cN, B, N *matrix.Matrix
+// 	var cB, cN, B, N *base.Matrix
 
-	cB = c.GetCols(iB)
-	cN = c.GetCols(iN)
-	B  = A.GetCols(iB)
-	N  = A.GetCols(iN)
+// 	cB = c.GetCols(iB)
+// 	cN = c.GetCols(iN)
+// 	B  = A.GetCols(iB)
+// 	N  = A.GetCols(iN)
 
-	// Compute intermidiate matrices for algorithm.
-	Binv, _ := B.Inverse()
-	T1, _ := matrix.Product(cB, Binv, N)
-	Sigma, _ := matrix.Subtract(cN, T1)
+// 	// Compute intermidiate matrices for algorithm.
+// 	Binv, _ := B.Inverse()
+// 	T1, _ := base.Product(cB, Binv, N)
+// 	Sigma, _ := base.Subtract(cN, T1)
 
-	xB, _ := matrix.Multiply(Binv, b)
+// 	xB, _ := base.Multiply(Binv, b)
 	
-	// ===================
+// 	// ===================
 
-	
-	math.Inf()
+// 	math.Inf()
 
-	var delta [2]float64
-
-
-}
+// 	var delta [2]float64
+// }

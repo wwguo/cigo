@@ -16,18 +16,86 @@
 // Package base provides basic interfaces and algorithms.
 package base
 
-// sort.go defines algorithms for slice sorting.
+import (
+	"math"
+	// "fmt"
+)
+
+// vector.go defines algorithms for slice vector manipulations.
 
 type Vector []float64
 
-func (a Vector) Sort () {
-	for j := 1; j < len(a); j++ {
-		key := a[j]
-		i := j - 1
-		for i > 0 && a[i] > key {
-			a[i+1] = a[i]
-			i = i - 1
+
+// Sorting vector into non-decreasing or non-increasingorder with Insertion-Sort.
+func (A Vector) InsertionSort (order bool) {
+	if order {
+		for j, key := range A {
+			i := j - 1
+			for i >= 0 && A[i] > key {
+				A[i+1] = A[i]
+				i = i - 1
+			}
+			A[i+1] = key
 		}
-		a[i+1] = key
+	} else {
+		for j, key := range A {
+			i := j - 1
+			for i >= 0 && A[i] < key {
+				A[i+1] = A[i]
+				i = i - 1
+			}
+			A[i+1] = key
+		}
+
 	}
+}
+
+func (A Vector) merge (p, q, r int) {
+    L := make(Vector, q-p)
+    R := make(Vector, r-q)
+    _ = copy(L, A[p:q])
+    _ = copy(R, A[q:r])
+	L = append(L, math.Inf(1))
+	R = append(R, math.Inf(1))
+	var i,j int
+	for k := p; k < r; k++ {
+		if L[i] <= R[j] {
+			A[k] = L[i]
+			i++
+		} else {
+			A[k] = R[j]
+			j++
+		}
+	}
+}
+
+func (A Vector) MergeSort (p, r int) {
+	if p < r - 1 {
+		q := (p+r)/2
+		A.MergeSort(p,q)
+		A.MergeSort(q,r)
+		A.merge(p,q,r)
+	}
+}
+
+
+
+
+
+
+
+// Suger functions
+
+// Check two vectors' equality.
+func EqualVector (a, b Vector) bool {
+	if len(a) != len(b) {
+		return false
+	} else {
+		for i := 0; i < len(a); i++ {
+			if a[i] != b[i] {
+				return false
+			}
+		}
+	}
+	return true
 }
