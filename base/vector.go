@@ -50,31 +50,45 @@ func (A Vector) InsertionSort (order bool) {
 	}
 }
 
-func (A Vector) merge (p, q, r int) {
+func (A Vector) merge (order bool, p, q, r int) {
     L := make(Vector, q-p)
     R := make(Vector, r-q)
     _ = copy(L, A[p:q])
     _ = copy(R, A[q:r])
-	L = append(L, math.Inf(1))
-	R = append(R, math.Inf(1))
 	var i,j int
-	for k := p; k < r; k++ {
-		if L[i] <= R[j] {
-			A[k] = L[i]
-			i++
-		} else {
-			A[k] = R[j]
-			j++
+	if order {
+		L = append(L, math.Inf(1))
+		R = append(R, math.Inf(1))
+		for k := p; k < r; k++ {
+			if L[i] <= R[j] {
+				A[k] = L[i]
+				i++
+			} else {
+				A[k] = R[j]
+				j++
+			}
+		}
+	} else {
+		L = append(L, math.Inf(-1))
+		R = append(R, math.Inf(-1))
+		for k := p; k < r; k++ {
+			if L[i] >= R[j] {
+				A[k] = L[i]
+				i++
+			} else {
+				A[k] = R[j]
+				j++
+			}
 		}
 	}
 }
 
-func (A Vector) MergeSort (p, r int) {
+func (A Vector) MergeSort (p int, r int, order bool) {
 	if p < r - 1 {
 		q := (p+r)/2
-		A.MergeSort(p,q)
-		A.MergeSort(q,r)
-		A.merge(p,q,r)
+		A.MergeSort(p,q, order)
+		A.MergeSort(q,r, order)
+		A.merge(order, p,q,r)
 	}
 }
 
