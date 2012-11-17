@@ -228,20 +228,32 @@ func (M *Matrix) SwapCols(c1, c2 int) {
 }
 
 // Combine two matrix and get a new matrix [A B].
-func Combine(A, B *Matrix) (M *Matrix, err error) {
-	M = new(Matrix)
-	if A.rows != B.rows {
-		err = ErrorDimensionMismatch
-		return
+func Combine(order bool, A, B *Matrix) (M *Matrix, err error) {
+	if order {
+		if A.rows != B.rows {
+			err = ErrorDimensionMismatch
+			return
+		}
+		M = MakeZero(A.rows, A.cols + B.cols)
+		for i := 1; i<=A.cols; i++ {
+			M.SetCol(i, A.GetCol(i))
+		}
+		for i := 1; i<=B.cols; i++ {
+			M.SetCol(A.cols+i, B.GetCol(i))
+		}
+	} else {
+		if A.cols != B.cols {
+			err = ErrorDimensionMismatch
+			return
+		}
+		M = MakeZero(A.rows+B.rows, A.cols)
+		for i := 1; i<=A.rows; i++ {
+			M.SetRow(i, A.GetRow(i))
+		}
+		for i := 1; i<=B.rows; i++ {
+			M.SetRow(A.rows+i, B.GetRow(i))
+		}
 	}
-	for i := 1; i<=A.rows; i++ {
-		Avec := A.GetRow(i)
-		Bvec := B.GetRow(i)
-		M.Vector = append(M.Vector, Avec.Vector...)
-		M.Vector = append(M.Vector, Bvec.Vector...)
-	}
-	M.rows = A.rows
-	M.cols = A.cols + B.cols
 	return
 }
 
@@ -252,7 +264,7 @@ func (M *Matrix) Inverse() (*Matrix, error) {
 	}
 	s := M.rows
 	I := MakeIdentity(s)
-	A, _ := Combine(M, I)
+	A, _ := Combine(true, M, I)
 	// Transforing first matrix to identity matrix one line each time.
 	for i := 1; i <= s; i++ {
 		// // Looking for the largest absolute value of the corresponding column. 
@@ -356,16 +368,46 @@ func Multiply(A, B *Matrix) (M *Matrix, err error) {
 		return nil, ErrorDimensionMismatch
 	}
 	M = MakeZero(A.rows, B.cols)
-	for i := 1; i <= A.rows; i++ {
-		for j := 1; j <= B.cols; j++ {
-			sum := float64(0)
-			for k := 1; k <= A.cols; k++ {
-				sum += A.Get(i,k) * B.Get(k, j)
+	// Use Strassen's algorithm for square matrix multiplication.
+	if A.cols == A.rows && B.cols == B.rows {
+		M = squareMatrixMultiply(A, B)
+	} else {
+		for i := 1; i <= A.rows; i++ {
+			for j := 1; j <= B.cols; j++ {
+				sum := float64(0)
+				for k := 1; k <= A.cols; k++ {
+					sum += A.Get(i,k) * B.Get(k, j)
+				}
+				M.Set(i,j,sum)
 			}
-			M.Set(i,j,sum)
 		}
 	}
 	return M, nil
+}
+
+func squareMatrixMultiply (A, B *Matrix) (M *Matrix) {
+	n := A.rows
+	M = MakeZero(n,n)
+	if n == 1 {
+		M.Set(1, 1, A.Get(1,1) * B.Get(1,1))
+	} else {
+		A11 := A.GetMatrix(1,     1,     n/2,   n/2 )
+		A12 := A.GetMatrix(1,     n/2+1, n/2,   n   )
+		A21 := A.GetMatrix(n/2+1, 1,     n,     n/2 )
+		A22 := A.GetMatrix(n/2+1, n/2+1, n,     n   )
+		B11 := B.GetMatrix(1,     1,     n/2,   n/2 )
+		B12 := B.GetMatrix(1,     n/2+1, n/2,   n   )
+		B21 := B.GetMatrix(n/2+1, 1,     n,     n/2 )
+		B22 := B.GetMatrix(n/2+1, n/2+1, n,     n   )
+		M11, _ := Add(squareMatrixMultiply(A11, B11), squareMatrixMultiply(A12, B21))
+		M12, _ := Add(squareMatrixMultiply(A11, B12), squareMatrixMultiply(A12, B22))
+		M21, _ := Add(squareMatrixMultiply(A21, B11), squareMatrixMultiply(A22, B21))
+		M22, _ := Add(squareMatrixMultiply(A21, B12), squareMatrixMultiply(A22, B22))
+		M1, _ := Combine(true, M11, M12)
+		M2, _ := Combine(true, M21, M22)
+		M, _ = Combine(false, M1, M2)
+	}
+	return
 }
 
 // Suger functions.

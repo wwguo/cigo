@@ -50,6 +50,16 @@ func (A Vector) InsertionSort (order bool) {
 	}
 }
 
+// Sorting vector into non-decreasing or non-increasingorder with Merge-Sort.
+func (A Vector) MergeSort (p int, r int, order bool) {
+	if p < r - 1 {
+		q := (p+r)/2
+		A.MergeSort(p,q, order)
+		A.MergeSort(q,r, order)
+		A.merge(order, p,q,r)
+	}
+}
+
 func (A Vector) merge (order bool, p, q, r int) {
     L := make(Vector, q-p)
     R := make(Vector, r-q)
@@ -80,15 +90,6 @@ func (A Vector) merge (order bool, p, q, r int) {
 				j++
 			}
 		}
-	}
-}
-
-func (A Vector) MergeSort (p int, r int, order bool) {
-	if p < r - 1 {
-		q := (p+r)/2
-		A.MergeSort(p,q, order)
-		A.MergeSort(q,r, order)
-		A.merge(order, p,q,r)
 	}
 }
 
