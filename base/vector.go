@@ -94,11 +94,6 @@ func (A Vector) merge (order bool, p, q, r int) {
 }
 
 
-
-
-
-
-
 // Suger functions
 
 // Check two vectors' equality.
