@@ -24,18 +24,19 @@ import (
 
 type Heap struct {
 	Vector
-	number []int
+	// number []int
 	size   int
 }
 
-// Functions for defining trees.
+// Functions for defining heap tree.
 
-func MakeHeap (e []float64, s int) *Heap {
+func MakeHeap (e Vector, s int) *Heap {
 	H := new(Heap)
-	for i, v := range e {
-		H.Vector = append(H.Vector, v)
-		H.number = append(H.number, i + 1)
-	}
+	H.Vector = e
+	// for i, v := range e {
+	// 	H.Vector = append(H.Vector, v)
+	// 	H.number = append(H.number, i + 1)
+	// }
 	if s < 0 || s > len(e) {
 		H.size = len(e)
 	} else {
@@ -48,6 +49,8 @@ func MakeHeap (e []float64, s int) *Heap {
 
 func (H *Heap) Get(i int) (e float64) {
 	e = H.Vector[i-1]
+	// n := H.number[i-1]
+	// e = H.Vector[n-1]
 	return
 }
 
@@ -82,21 +85,70 @@ func (H *Heap) Right(i int) (n int, e float64) {
 }
 
 
-func (H *Heap) MaxHeapify(i int) {
+// TODO: Might change the function to one that transfer a slice/Vector to a heap. 
+func BuildOrderHeap (e Vector, order bool) *Heap {
+	H := MakeHeap(e, len(e))
+	for i := H.size/2; i >= 1; i-- {
+		H.OrderHeapify(i, order)
+	}
+	return H
+}
+
+func (H *Heap) OrderHeapify(i int, order bool) {
 	l, lv := H.Left(i)
 	r, rv := H.Right(i)
-	iv := H.Get(i)
-	if l <= H.size && lv > iv {
-		largest := l
+	ov := H.Get(i)
+	var o int
+	if order {
+		if l <= H.size && lv > ov {
+			o = l
+			ov = lv
+		} else {
+			o = i
+		}
+		if r <= H.size && rv > ov {
+			o = r
+		}
 	} else {
-		largest := i
-	} 
+		if l <= H.size && lv < ov {
+			o = l
+			ov = lv
+		} else {
+			o = i
+		}
+		if r <= H.size && rv < ov {
+			o = r
+		}
+	}
+	if o != i {
+		H.Vector[o-1], H.Vector[i-1] = H.Vector[i-1], H.Vector[o-1]
+		// H.number[o-1], H.number[i-1] = H.number[i-1], H.number[o-1]
+		H.OrderHeapify(o, order)
+	}
 }
 
+//==== Priority Queue ====
 
+func (H *Heap) Maximum() float64 {
+	return H.Get(1)
+}
 
+func (H *Heap) ExtractMax() (max flaot64, err error) {
+	if H.size < 1 {
+		err = ErrorIllegalIndex
+	}
+	max = H.Get(1)
+	H.Vector[0] = H.Vector[H.size-1]
+	H.size = H.size - 1
+	H.OrderHeapify(1,true)
+	return
+}
 
-// Sorting vector into non-decreasing or non-increasingorder with HeapSort.
-func (H Heap) HeapSort () {
+func (H *Heap) IncreaseKey(i int, key flaot64) {
+	if key < H.Vector[i-1] {
+		err = ErrorIllegalIndex
+	}
+	H.Vector[i-1] = key
+	for i > 1 
+}
 	
-}

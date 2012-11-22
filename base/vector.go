@@ -94,6 +94,16 @@ func (A Vector) merge (order bool, p, q, r int) {
 }
 
 
+// Sorting vector into non-decreasing or non-increasingorder with HeapSort.
+func (A Vector) HeapSort (order bool) {
+	H := BuildOrderHeap(A, order)
+	for i := H.size; i >= 2; i-- {
+		H.Vector[0], H.Vector[i-1] = H.Vector[i-1], H.Vector[0]
+		H.size = H.size - 1
+		H.OrderHeapify(1, order)
+	}
+}
+
 // Suger functions
 
 // Check two vectors' equality.
