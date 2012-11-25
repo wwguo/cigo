@@ -28,6 +28,8 @@ type Heap struct {
 	size   int
 }
 
+// TODO: Add "d-ary heap", which is like a binary heap, but non-leaf nodes have d children instead of 2 children.
+
 // Functions for defining heap tree.
 
 func MakeHeap (e Vector, s int) *Heap {
@@ -85,7 +87,6 @@ func (H *Heap) Right(i int) (n int, e float64) {
 }
 
 
-// TODO: Might change the function to one that transfer a slice/Vector to a heap. 
 func BuildOrderHeap (e Vector, order bool) *Heap {
 	H := MakeHeap(e, len(e))
 	for i := H.size/2; i >= 1; i-- {
@@ -129,11 +130,13 @@ func (H *Heap) OrderHeapify(i int, order bool) {
 
 //==== Priority Queue ====
 
+// TODO: modify functions to consider min-heap, which is "monotone" and useful in later usage.
+
 func (H *Heap) Maximum() float64 {
 	return H.Get(1)
 }
 
-func (H *Heap) ExtractMax() (max flaot64, err error) {
+func (H *Heap) ExtractMax() (max float64, err error) {
 	if H.size < 1 {
 		err = ErrorIllegalIndex
 	}
@@ -144,11 +147,23 @@ func (H *Heap) ExtractMax() (max flaot64, err error) {
 	return
 }
 
-func (H *Heap) IncreaseKey(i int, key flaot64) {
-	if key < H.Vector[i-1] {
-		err = ErrorIllegalIndex
+func (H *Heap) IncreaseKey(i int, key float64) (err error) {
+	if key < H.Get(i) {
+		err = ErrorIllegalIndex  // TODO: replace this error definition.
 	}
 	H.Vector[i-1] = key
-	for i > 1 
+	p, parent := H.Parent(i)
+	for i > 1 && parent < H.Get(i) {
+		H.Vector[p-1], H.Vector[i-1] = H.Vector[i-1], H.Vector[p-1]
+		i = p
+		p, parent = H.Parent(i)
+	}
+	return
 }
-	
+
+func (H *Heap) Insert(key float64) {
+	H.size = H.size + 1
+	H.Vector = append(H.Vector, math.Inf(-1))
+	H.IncreaseKey(H.size, key)
+}
+
