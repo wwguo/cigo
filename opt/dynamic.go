@@ -13,32 +13,15 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-// Package ecm provides interfaces and types for evolutionary computation.
-package ecm
+// Package opt provides interfaces and algorithms for optimization.
+package opt
 
-// ga.go implements genetic algorighms.
+// dynamic.go defines the dynamic programming algorithm.
+
+import (
+	// "math"
+	// "fmt"
+	"github.com/wwguo/ai.go/base"
+)
 
 
-// Choose within crossover operators.
-//
-// Parameters:
-//     crossover_type: string
-// Outputs:
-//     crossover function
-//
-// Special cases:
-//     None
-func Crossover (crossover_type) (func (float64) float64) {
-	switch crossover_type {
-    case "one_point": 
-		return OnePointCrossover;
-    case "two_point":
-		return TwoPointCrossover;
-    case "uniform":
-		return UniformCrossover;
-	}
-}
-
-type GABinary struct {
-	
-}
