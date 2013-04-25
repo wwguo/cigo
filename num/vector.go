@@ -24,8 +24,7 @@ import (
 // vector.go defines algorithms for slice vector manipulations.
 
 type vector []float64
-
-type Index  []int
+type index  []int
 
 // Assign a vector.
 //   n : length of the vector
